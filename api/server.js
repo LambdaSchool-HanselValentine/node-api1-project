@@ -39,6 +39,26 @@ app.post("/api/users", async (req, res) => {
 			//error code 500: unexpected error occurred. no other error code is suitable
 		});
 	}
+
+	// ==== code below also works, idk which one is better ======
+
+	// try {
+	// 	// if data is valid:
+	// 	if (userData.name && userData.bio) {
+	// 		res.status(201).json(newUser); // status code 201 = Created
+	// 	}
+	// 	// if not valid, respond with error code
+	// 	else {
+	// 		res
+	// 			.status(400) //error code 400 = Bad request
+	// 			.json({ message: "Please provide name and bio for the user" });
+	// 	}
+	// } catch {
+	// 	res.status(500).json({
+	// 		message: "There was an error while saving the user to the database",
+	// 		//error code 500: unexpected error occurred. no other error code is suitable
+	// 	});
+	// }
 });
 
 // [GET] /api/users
@@ -67,19 +87,17 @@ app.get("/api/users", async (req, res) => {
 app.get("/api/users/:id", async (req, res) => {
 	const { id } = req.params;
 
-	try {
-		const user = await User.findById(id);
-		if (user) {
-			// user found success:
-			res.status(200).send(user);
-		} else {
-			// user not found. error 404 = Not Found
-			res
-				.status(404)
-				.send({ message: "The user with the specified ID does not exist" });
-		}
+	const user = await User.findById(id);
+	if (user) {
+		// user found success:
+		res.status(200).json(user);
+	} else if (!user) {
+		// user not found. error 404 = Not Found
+		res
+			.status(404)
+			.json({ message: "The user with the specified ID does not exist" });
+	} else {
 		//generic error response 500:
-	} catch (error) {
 		res
 			.status(500)
 			.send({ message: "The user information could not be retrieved" });
