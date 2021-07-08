@@ -20,10 +20,10 @@ app.get("/", (req, res) => {
 app.post("/api/users", async (req, res) => {
 	// the body which are {name: "", bio: ""}
 	const userData = req.body;
+	const newUser = await User.insert(userData);
 
 	// if data is valid:
 	if (userData.name && userData.bio) {
-		const newUser = await User.insert(userData);
 		res.status(201).json(newUser); // status code 201 = Created
 	}
 	// if not valid, respond with error code
@@ -59,16 +59,16 @@ app.get("/api/users", async (req, res) => {
 		? res.status(200).json(users)
 		: res
 				.status(500)
-				.json({ message: "he users information could not be retrieved" });
+				.json({ message: "The users information could not be retrieved" });
 });
 
 // [GET] /api/users/:id
 // Returns the user object with the specified {id}.
 app.get("/api/users/:id", async (req, res) => {
 	const { id } = req.params;
-	const user = await User.findById(id);
 
 	try {
+		const user = await User.findById(id);
 		if (user) {
 			// user found success:
 			res.status(200).send(user);
@@ -88,8 +88,61 @@ app.get("/api/users/:id", async (req, res) => {
 
 // [DELETE] /api/users/:id
 // Removes the user with the specified {id} and returns the deleted user.
+app.delete("/api/users/:id", async (req, res) => {
+	const { id } = req.params;
+	const user = await User.remove(id);
+
+	// ternary operator if-else with try-catch.
+	// idk what the diff is with using if, else if, and else:
+
+	// try {
+	// 	user
+	// 		? res.status(200).json(user)
+	// 		: res
+	// 				.status(404)
+	// 				.json({ message: "The user with the specified ID does not exist" });
+	// } catch (error) {
+	// 	res.status(500).json({ message: "The user could not be removed" });
+	// }
+
+	if (user) {
+		res.status(200).json(user);
+	} else if (!user) {
+		res
+			.status(404)
+			.json({ message: "The user with the specified ID does not exist" });
+	} else {
+		res.status(500).json({ message: "The user could not be removed" });
+	}
+});
 
 // [PUT] /api/users/:id
 // Updates the user with the specified {id} using data from the {request body}. Returns the modified user
+app.put("/api/users/:id", async (req, res) => {
+	const { id } = req.params;
+	const newData = req.body;
+
+	try {
+		const updatedUser = await User.update(id, newData);
+
+		if (updatedUser) {
+			res.status(201).json(updatedUser);
+		} else if (!newData.name || !newData.bio) {
+			res
+				.status(400) //400 = bad request
+				.json({ message: "Please provide name and bio for the user" });
+		} else {
+			res
+				.status(404) //404 = not found
+				.json({
+					message: "The user with the specified ID does not exist",
+				});
+		}
+	} catch {
+		res.status(500).json({
+			message: "The user information could not be modified",
+		});
+	}
+});
 
 module.exports = app; // EXPORT YOUR SERVER instead of {}
