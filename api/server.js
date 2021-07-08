@@ -59,27 +59,31 @@ app.post("/api/users", async (req, res) => {
 	// 		//error code 500: unexpected error occurred. no other error code is suitable
 	// 	});
 	// }
+
+	// or just invoking insert().then().catch()
 });
 
 // [GET] /api/users
 // Returns an array users.
 app.get("/api/users", async (req, res) => {
-	const users = await User.find();
+	User.find()
+		.then((user) => {
+			res.status(200).json(user);
+		})
+		.catch((err) => {
+			res.status(500).json({
+				message: "The users information could not be retrieved",
+				err: err.message,
+			});
+		});
 
-	// if (users) {
-	// 	res.status(200).json(users); //status code 200 = success
-	// } else {
-	// 	res
-	// 		.status(500)
-	// 		.json({ message: "he users information could not be retrieved" });
-	// }
-
-	// Hmmm, I guess you can also write it this way?
-	users
-		? res.status(200).json(users)
-		: res
-				.status(500)
-				.json({ message: "The users information could not be retrieved" });
+	// OR =========>
+	// const users = await User.find();
+	// users
+	// 	? res.status(200).json(users)
+	// 	: res
+	// 			.status(500)
+	// 			.json({ message: "The users information could not be retrieved" });
 });
 
 // [GET] /api/users/:id
@@ -108,30 +112,33 @@ app.get("/api/users/:id", async (req, res) => {
 // Removes the user with the specified {id} and returns the deleted user.
 app.delete("/api/users/:id", async (req, res) => {
 	const { id } = req.params;
-	const user = await User.remove(id);
 
-	// ternary operator if-else with try-catch.
-	// idk what the diff is with using if, else if, and else:
-
-	// try {
-	// 	user
-	// 		? res.status(200).json(user)
-	// 		: res
-	// 				.status(404)
-	// 				.json({ message: "The user with the specified ID does not exist" });
-	// } catch (error) {
+	// const user = await User.remove(id);
+	// if (user) {
+	// 	res.status(200).json(user);
+	// } else if (!user) {
+	// 	res
+	// 		.status(404)
+	// 		.json({ message: "The user with the specified ID does not exist" });
+	// } else {
 	// 	res.status(500).json({ message: "The user could not be removed" });
 	// }
 
-	if (user) {
-		res.status(200).json(user);
-	} else if (!user) {
-		res
-			.status(404)
-			.json({ message: "The user with the specified ID does not exist" });
-	} else {
-		res.status(500).json({ message: "The user could not be removed" });
-	}
+	// OR ========>
+	User.remove(id)
+		.then((user) => {
+			user
+				? res.status(200).json(user)
+				: res
+						.status(404)
+						.json({ message: "The user with the specified ID does not exist" });
+		})
+		.catch((err) => {
+			res.status(500).json({
+				message: "The user could not be removed",
+				err: err.message,
+			});
+		});
 });
 
 // [PUT] /api/users/:id
